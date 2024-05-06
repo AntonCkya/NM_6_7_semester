@@ -39,7 +39,7 @@ func LURunner() {
 		b[i] = bb
 	}
 
-	L, U := LU.GetLU(M, mSize)
+	L, U, P := LU.GetLU(M, mSize)
 
 	fmt.Println("L:")
 	for i := 0; i < mSize; i++ {
@@ -53,6 +53,14 @@ func LURunner() {
 	for i := 0; i < mSize; i++ {
 		for j := 0; j < mSize; j++ {
 			fmt.Printf("%.2f ", U[i][j])
+		}
+		fmt.Print("\n")
+	}
+
+	fmt.Println("P:")
+	for i := 0; i < mSize; i++ {
+		for j := 0; j < mSize; j++ {
+			fmt.Printf("%.0f ", P[i][j])
 		}
 		fmt.Print("\n")
 	}
