@@ -222,6 +222,27 @@ func RotationRunner() {
 		fmt.Printf("%.6f\n", eValue[i][i])
 	}
 
+	fmt.Println()
+	for i := 0; i < mSize; i++ {
+		var eVecVal []float64
+		var eCurrVec []float64
+		for j := 0; j < mSize; j++ {
+			eVecVal = append(eVecVal, eValue[i][i]*eVector[j][i])
+			eCurrVec = append(eCurrVec, eVector[j][i])
+		}
+		fmt.Printf("Check %d:\n", i+1)
+		fmt.Print("(")
+		for j := 0; j < mSize; j++ {
+			fmt.Printf("%.4f ", eVecVal[j])
+		}
+		fmt.Print(")\n(")
+		MxEV := iterations.MatrixVectorMult(M, eCurrVec)
+		for j := 0; j < mSize; j++ {
+			fmt.Printf("%.4f ", MxEV[j])
+		}
+		fmt.Print(")\n")
+	}
+
 	fmt.Println("\ncount:")
 	fmt.Printf("%d\n", count)
 }
