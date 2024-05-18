@@ -7,10 +7,13 @@ import (
 	derivative "github.com/AntonCkya/numeric/Derivative"
 	integral "github.com/AntonCkya/numeric/Integral"
 	interpolation "github.com/AntonCkya/numeric/Interpolation"
+	"github.com/AntonCkya/numeric/LSM"
 	plotter "github.com/AntonCkya/numeric/Plotter"
+	spline "github.com/AntonCkya/numeric/Spline"
 )
 
 func InterpolationRunner() {
+	fmt.Println("3.1-----Interpolation-----")
 	F := func(x float64) float64 {
 		return math.Pow(math.E, x) + x
 	}
@@ -93,11 +96,135 @@ func InterpolationRunner() {
 }
 
 func SplineRunner() {
+	fmt.Println("3.2-----Spline-----")
 
+	POLY := func(x, xx float64, a, b, c, d []float64, i int) float64 {
+		return a[i] + b[i]*(x-xx) + c[i]*(x-xx)*(x-xx) + d[i]*(x-xx)*(x-xx)*(x-xx)
+	}
+
+	fmt.Println("Size:")
+	var n int
+	fmt.Scan(&n)
+
+	var x []float64
+	var y []float64
+	fmt.Println("X:")
+	for i := 0; i < n; i++ {
+		var xx float64
+		fmt.Scan(&xx)
+		x = append(x, xx)
+	}
+
+	fmt.Println("F:")
+	for i := 0; i < n; i++ {
+		var yy float64
+		fmt.Scan(&yy)
+		y = append(y, yy)
+	}
+
+	fmt.Println("X*:")
+	var xx float64
+	fmt.Scan(&xx)
+
+	a, b, c, d := spline.Spline(x, y, n)
+	fmt.Println("|   a   |   b   |   c   |   d   |")
+	for i := 1; i < n; i++ {
+		fmt.Printf("|%.5f|%.5f|%.5f|%.5f|\n", a[i], b[i], c[i], d[i])
+	}
+
+	var fx float64
+	for i := 0; i < n-1; i++ {
+		if x[i] <= xx && x[i+1] >= xx {
+			fx = POLY(xx, x[i], a, b, c, d, i+1)
+			x = append(x, xx)
+			y = append(y, fx)
+			break
+		}
+	}
+	fmt.Println("f(x*) = ", fx)
+
+	var sx, sy []float64
+	xxx := x[0]
+	j := 1
+	for i := x[0] - 2; i < x[n-1]+2; i += 0.01 {
+		if i >= x[j] && j != n-1 {
+			xxx = x[j]
+			j++
+		}
+		sx = append(sx, i)
+		sy = append(sy, POLY(i, xxx, a, b, c, d, j))
+	}
+
+	plotter.Plot1D(sx, sy, x, y, "spline", []string{"spline"})
 }
 
 func LSMRunner() {
+	fmt.Println("3.3-----LSM-----")
 
+	POLY := func(x float64, p []float64) float64 {
+		res := 0.0
+		for i := 0; i < len(p); i++ {
+			res += math.Pow(x, float64(i)) * p[i]
+		}
+		return res
+	}
+
+	fmt.Println("Size:")
+	var n int
+	fmt.Scan(&n)
+
+	var x []float64
+	var y []float64
+	fmt.Println("X:")
+	for i := 0; i < n; i++ {
+		var xx float64
+		fmt.Scan(&xx)
+		x = append(x, xx)
+	}
+
+	fmt.Println("Y:")
+	for i := 0; i < n; i++ {
+		var yy float64
+		fmt.Scan(&yy)
+		y = append(y, yy)
+	}
+
+	a1 := LSM.A(x, y, 1, n)
+	fmt.Println("p = 1:")
+	for i := 0; i < len(a1); i++ {
+		if i == 0 {
+			fmt.Print(a1[i])
+		} else {
+			fmt.Print(a1[i], "*x^", i)
+		}
+		if i != len(a1)-1 {
+			fmt.Print(" + ")
+		}
+	}
+	fmt.Println("\nError: ", LSM.Error(x, y, a1))
+
+	a2 := LSM.A(x, y, 2, n)
+	fmt.Println("\np = 2:")
+	for i := 0; i < len(a2); i++ {
+		if i == 0 {
+			fmt.Print(a2[i])
+		} else {
+			fmt.Print(a2[i], "*x^", i)
+		}
+		if i != len(a2)-1 {
+			fmt.Print(" + ")
+		}
+	}
+	fmt.Println("\nError: ", LSM.Error(x, y, a2))
+
+	var l1x, l1y, l2x, l2y []float64
+	for i := x[0] - 2; i < x[n-1]+2; i += 0.01 {
+		l1x = append(l1x, i)
+		l2x = append(l2x, i)
+		l1y = append(l1y, POLY(i, a1))
+		l2y = append(l2y, POLY(i, a2))
+	}
+	plotter.Plot2D(l1x, l1y, l2x, l2y, x, y, "LSM", []string{"linear", "square", "function"})
 }
 
 func DerivativeRunner() {
