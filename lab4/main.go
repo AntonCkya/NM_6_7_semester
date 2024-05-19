@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	boundary "github.com/AntonCkya/numeric_methods/Boundary"
 	cauchy "github.com/AntonCkya/numeric_methods/Cauchy"
 	plotter "github.com/AntonCkya/numeric_methods/Plotter"
 )
@@ -26,8 +27,8 @@ func CauchyRunner() {
 	xr := 2.0
 	h := 0.1
 
-	xEuler, yEuler := cauchy.DiffEuler(SYS, yKey, zKey, xl, xr, h)
-	_, y2Euler := cauchy.DiffEuler(SYS, yKey, zKey, xl, xr, h/2)
+	xEuler, yEuler, _ := cauchy.DiffEuler(SYS, yKey, zKey, xl, xr, h)
+	_, y2Euler, _ := cauchy.DiffEuler(SYS, yKey, zKey, xl, xr, h/2)
 	var yTrue []float64
 	for i := 0; i < len(xEuler); i++ {
 		yTrue = append(yTrue, SOLVE(xEuler[i]))
@@ -39,8 +40,8 @@ func CauchyRunner() {
 	_, y2Runge, _ := cauchy.DiffRungeKutt(SYS, yKey, zKey, xl, xr, h/2)
 	plotter.Plot2(xRunge, yRunge, xRunge, yTrue, "runge-kutt", []string{"runge-kutt", "function"})
 
-	xAdams, yAdams := cauchy.DiffAdams(SYS, yKey, zKey, xl, xr, h)
-	_, y2Adams := cauchy.DiffAdams(SYS, yKey, zKey, xl, xr, h/2)
+	xAdams, yAdams, _ := cauchy.DiffAdams(SYS, yKey, zKey, xl, xr, h)
+	_, y2Adams, _ := cauchy.DiffAdams(SYS, yKey, zKey, xl, xr, h/2)
 	plotter.Plot2(xAdams, yAdams, xAdams, yTrue, "adams", []string{"adams", "function"})
 
 	fmt.Println("Euler error (RRR): ", cauchy.RRRmethod(yEuler, y2Euler, 1))
@@ -53,7 +54,44 @@ func CauchyRunner() {
 }
 
 func BoundaryRunner() {
+	SYS := []func(x, y, z float64) float64{
+		func(x, y, z float64) float64 {
+			return z
+		},
+		func(x, y, z float64) float64 {
+			return (y - (x-3)*z) / (x*x - 1)
+		},
+	}
 
+	xl, xr := 0.0, 1.0
+	al, bl, yl := 0.0, 1.0, 0.0
+	ar, br, yr := 1.0, 1.0, -0.75
+
+	h := 0.1
+	eps := 0.001
+
+	SOLVE := func(x float64) float64 {
+		return x - 3 + (1 / (x + 1))
+	}
+
+	xShoot, yShoot := boundary.DiffShooting(SYS, xl, xr, al, bl, yl, ar, br, yr, h, eps)
+	_, y2Shoot := boundary.DiffShooting(SYS, xl, xr, al, bl, yl, ar, br, yr, h/2, eps)
+	var yTrue []float64
+	for i := 0; i < len(xShoot); i++ {
+		yTrue = append(yTrue, SOLVE(xShoot[i]))
+	}
+
+	plotter.Plot2(xShoot, yShoot, xShoot, yTrue, "shooting", []string{"shooting", "function"})
+
+	xFinite, yFinite := boundary.DiffFinite(SYS, xl, xr, al, bl, yl, ar, br, yr, h)
+	_, y2Finite := boundary.DiffFinite(SYS, xl, xr, al, bl, yl, ar, br, yr, h/2)
+	plotter.Plot2(xFinite, yFinite, xShoot, yTrue, "finite", []string{"finite", "function"})
+
+	fmt.Println("shooting error (RRR): ", cauchy.RRRmethod(yShoot, y2Shoot, 4))
+	fmt.Println("finite error (RRR): ", cauchy.RRRmethod(yFinite, y2Finite, 4))
+	fmt.Println()
+	fmt.Println("shooting error: ", cauchy.AbsoluteError(yShoot, yTrue))
+	fmt.Println("finite error: ", cauchy.AbsoluteError(yFinite, yTrue))
 }
 
 func main() {
