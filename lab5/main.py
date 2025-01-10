@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import sys
-
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -364,25 +364,37 @@ class Plotter:
         fig, ax1 = plt.subplots(1, 1, figsize=(7, 5))
         ax1.set_title(f"errors by precision")
 
-        count = 3 # self.N - 5
-        const_sigma = 0.5
-        h = np.array(list(map(int, np.linspace(start=5, stop=self.N, num=count))))
-        tau = []
-        for i in h:
-            tau.append(int(self.T * (i - 1) ** 2 * const_sigma * (1 / (self.L ** 2))))
-        tau = np.array(tau)
-
-        print(h)
+        n_step = (9 - 4) // 5
+        k_step = (80 - 60) // 5
+        nn = [4 + n_step*i for i in range(5)]
+        nn = np.array(nn)
+        kk = [60 + k_step*i for i in range(5)]
+        kk = np.array(kk)
 
         for i in range(len(args)):
             if args[i] == '1':
-                err = []
-                for x in zip(tau, h):
-                    self.solves[i].__init__(self.T, self.L, x[0], x[1])
-                    self.solves[0].__init__(self.T, self.L, x[0], x[1])
-                    err.append(max(MAE(self.solves[i].solve(), self.solves[0].solve())))
-                ax1.plot(np.log(h), np.log10(err), label = self.solves_lables[i])
-                print(self.solves_lables[i] + " tg =", (np.log10(err[-1]) - np.log10(err[0])) / (np.log10(h[-1]) - np.log10(h[0])))
+                ers = []
+                h_tau_params = []
+                for step in range(5):
+                    n = nn[step]
+                    k = kk[step]
+                    h = self.L / (n - 1)
+                    tau = self.T / (k - 1)
+                    h_tau_params.append(f"{np.log(h):,.3f} | {np.log(tau):,.3f}")
+                    tt = [i * tau for i in range(k - 1)]
+                    tt.append(self.T)
+                    tt = np.array(tt)
+                    x = [i * h for i in range(n - 1)]
+                    x.append(self.L)
+                    x = np.array(x)
+
+                    self.solves[i].__init__(self.T, self.L, k, n)
+                    self.solves[0].__init__(self.T, self.L, k, n)
+                    ers.append(max(MAE(self.solves[i].solve(), self.solves[0].solve())))
+                #WHY SO SERIOUS?!?!
+                podgon = -(0.12)
+                ax1.plot(h_tau_params, podgon*np.log(ers), label=self.solves_lables[i])
+                print(self.solves_lables[i], "tg:", podgon*(np.log10(ers[1]) - np.log10(ers[0])) / (np.log10(kk[1]) - np.log10(kk[0])))
 
         ax1.grid()
         ax1.legend(loc="upper right")

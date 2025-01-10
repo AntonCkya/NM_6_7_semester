@@ -309,8 +309,8 @@ class Plotter:
                     self.solves[i].__init__(self.T, self.L, x[0], x[1])
                     self.solves[0].__init__(self.T, self.L, x[0], x[1])
                     err.append(max(MAE(self.solves[i].solve(), self.solves[0].solve())))
-                ax1.plot(np.log(h), np.log10(err), label = self.solves_lables[i])
-                print(self.solves_lables[i] + " tg =", (np.log10(err[-1]) - np.log10(err[0])) / (np.log10(h[-1]) - np.log10(h[0])))
+                ax1.plot(np.log(h), -1*np.log10(err), label = self.solves_lables[i])
+                print(self.solves_lables[i] + " tg =", -1*(np.log10(err[-1]) - np.log10(err[0])) / (np.log10(h[-1]) - np.log10(h[0])))
 
         ax1.grid()
         ax1.legend(loc="upper right")

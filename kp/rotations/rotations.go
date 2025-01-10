@@ -1,7 +1,6 @@
 package rotations
 
 import (
-	"fmt"
 	"math"
 	"sync"
 )
@@ -188,39 +187,7 @@ func Rotation(m [][]float64, mSize int, eps float64) ([][]float64, [][]float64, 
 		uNew := GetRotationMatrix(mSize, phi, i, j)
 		u = MatrixMult(u, uNew, mSize)
 
-		xxx := MatrixMult(mNew, uNew, mSize)
-		yyy := MatrixMult(MatrixTranspose(uNew, mSize), mNew, mSize)
-
 		mNew = MatrixMult(MatrixMult(MatrixTranspose(uNew, mSize), mNew, mSize), uNew, mSize)
-
-		fmt.Println("U:")
-		for i := 0; i < mSize; i++ {
-			for j := 0; j < mSize; j++ {
-				fmt.Printf("%.4f ", uNew[j][i])
-			}
-			fmt.Println()
-		}
-		fmt.Println("Mnew:")
-		for i := 0; i < mSize; i++ {
-			for j := 0; j < mSize; j++ {
-				fmt.Printf("%.4f ", mNew[j][i])
-			}
-			fmt.Println()
-		}
-		fmt.Println("MU:")
-		for i := 0; i < mSize; i++ {
-			for j := 0; j < mSize; j++ {
-				fmt.Printf("%.4f ", xxx[j][i])
-			}
-			fmt.Println()
-		}
-		fmt.Println("UtM:")
-		for i := 0; i < mSize; i++ {
-			for j := 0; j < mSize; j++ {
-				fmt.Printf("%.4f ", yyy[j][i])
-			}
-			fmt.Println()
-		}
 
 		count++
 	}
